@@ -1,0 +1,30 @@
+#ifndef TOUCH_CONF_HEADER
+#define TOUCH_CONF_HEADER
+
+#include "main.h"
+
+#define TOUCH_SPI hspi1
+
+#define TOUCH_CS_PORT GPIOC
+#define TOUCH_CS_PIN GPIO_PIN_7
+
+#define XPT_CMD_X 0xD0
+#define XPT_CMD_Y 0x90
+#define XPT_CMD_Z 0xB0
+
+#define SPI_SCREEN SPI_BAUDRATEPRESCALER_2
+#define SPI_TOUCH SPI_BAUDRATEPRESCALER_64
+
+#define TOUCH_X_MIN 300
+#define TOUCH_Y_MIN 300
+#define TOUCH_X_MAX 3700
+#define TOUCH_Y_MAX 3800
+
+#define TOUCH_THRESHOLD 50
+
+#define TOUCH_SPI_TIMEOUT 1000
+
+#define TOUCH_OUT_W 320
+#define TOUCH_OUT_H 240
+
+#endif
