@@ -26,14 +26,52 @@ void create_screen_main() {
     lv_obj_t *obj = lv_obj_create(0);
     objects.main = obj;
     lv_obj_set_pos(obj, 0, 0);
-    lv_obj_set_size(obj, 800, 480);
+    lv_obj_set_size(obj, 320, 240);
     {
         lv_obj_t *parent_obj = obj;
         {
             lv_obj_t *obj = lv_label_create(parent_obj);
-            lv_obj_set_pos(obj, 356, 232);
+            lv_obj_set_pos(obj, 19, 87);
             lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-            lv_label_set_text_static(obj, "Hello, world!");
+            lv_label_set_text_static(obj, "Romshh");
+        }
+        {
+            lv_obj_t *obj = lv_button_create(parent_obj);
+            lv_obj_set_pos(obj, 110, 161);
+            lv_obj_set_size(obj, 100, 50);
+            {
+                lv_obj_t *parent_obj = obj;
+                {
+                    lv_obj_t *obj = lv_label_create(parent_obj);
+                    lv_obj_set_pos(obj, 0, 0);
+                    lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+                    lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_label_set_text_static(obj, "Start");
+                }
+            }
+        }
+        {
+            lv_obj_t *obj = lv_qrcode_create(parent_obj);
+            objects.obj0 = obj;
+            lv_obj_set_pos(obj, 228, 12);
+            lv_obj_set_size(obj, 80, 79);
+            lv_qrcode_set_size(obj, 79);
+            lv_qrcode_set_dark_color(obj, lv_color_hex(0x000000));
+            lv_qrcode_set_light_color(obj, lv_color_hex(0xffffff));
+            lv_qrcode_update(obj, "https://github.com/Romshh/", 26);
+            lv_obj_add_flag(obj, LV_OBJ_FLAG_CLICKABLE);
+        }
+        {
+            lv_obj_t *obj = lv_label_create(parent_obj);
+            lv_obj_set_pos(obj, 74, 120);
+            lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+            lv_label_set_text_static(obj, "stm32-file-manager-gui");
+        }
+        {
+            lv_obj_t *obj = lv_image_create(parent_obj);
+            lv_obj_set_pos(obj, 10, 10);
+            lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+            lv_image_set_src(obj, &img_invertocat);
         }
     }
     

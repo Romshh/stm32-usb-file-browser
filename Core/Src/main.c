@@ -24,7 +24,9 @@
 #include "lcd.h"
 #include "touch.h"
 #include <stdio.h>
+
 #include "lvgl/lvgl.h"
+#include "ui.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -117,16 +119,11 @@ int main(void)
   lv_display_set_flush_cb(disp, lcd_flush);
 
 
-  lv_obj_t *label = lv_label_create(lv_screen_active());
-  lv_label_set_text(label, "VERITAS II");
-
   touch_indev = lv_indev_create();
   lv_indev_set_type(touch_indev, LV_INDEV_TYPE_POINTER);
   lv_indev_set_read_cb(touch_indev, lcd_indev);
 
-  lv_obj_t *btn = lv_button_create(lv_screen_active());
-  lv_obj_set_size(btn, 120, 60);
-  lv_obj_center(btn);
+  ui_init();
 
 
 
@@ -142,7 +139,7 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  lv_timer_handler();
-
+	  ui_tick();
 	  HAL_Delay(20);
 
   }
