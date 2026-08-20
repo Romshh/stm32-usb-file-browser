@@ -27,6 +27,7 @@
 
 #include "lvgl/lvgl.h"
 #include "ui.h"
+#include "actions.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -54,8 +55,26 @@ UART_HandleTypeDef huart3;
 /* USER CODE BEGIN PV */
 
 #define LVGL_BUFFER_PIXELS (LCD_W * (LCD_H / 4))
-static uint16_t buffer_arr[LVGL_BUFFER_PIXELS];
+static uint16_t buffer_arr[LVGL_BUFFER_PIXELS]__attribute__((aligned(4)));
 static lv_display_t* disp;
+
+typedef struct {
+    const char *name;
+    bool        is_dir;
+} fm_entry_t;
+
+static const fm_entry_t fm_entries[] = {
+    { "documents",  true  },
+    { "pictures",   true  },
+    { "music",      true  },
+    { "notes.txt",  false },
+    { "report.md",  false },
+    { "logo.png",   false },
+    { "record.wav", false },
+};
+
+#define FM_ENTRY_COUNT (sizeof(fm_entries) / sizeof(fm_entries[0]))
+
 
 /* USER CODE END PV */
 
@@ -126,9 +145,6 @@ int main(void)
   ui_init();
 
 
-
-
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -140,7 +156,7 @@ int main(void)
     /* USER CODE BEGIN 3 */
 	  lv_timer_handler();
 	  ui_tick();
-	  HAL_Delay(20);
+	  HAL_Delay(5);
 
   }
   /* USER CODE END 3 */
@@ -405,6 +421,49 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+static void fm_row_event(lv_event_t *e){
+
+	lv_obj_t* row = (lv_obj_t*) lv_event_get_target(e);
+	lv_event_code_t code = lv_event_get_code(e);
+	if(code == LV_EVENT_CLICKED){
+		lv_obj_set_style_bg_color(row, lv_color_hex(0x2563EB), LV_PART_MAIN);
+	}
+	else if(code == LV_EVENT_LONG_PRESSED){
+		lv_obj_set_style_bg_color(row, lv_color_hex(0xEB259F), LV_PART_MAIN);
+
+	}
+}
+
+
+static void fm_list_fill(void)
+{
+    lv_obj_clean(objects.page2_list);
+
+    for (uint32_t i = 0; i < FM_ENTRY_COUNT; i++)
+    {
+        const void *icon = fm_entries[i].is_dir ? LV_SYMBOL_DIRECTORY : LV_SYMBOL_FILE;
+
+        lv_obj_t *row = lv_list_add_button(objects.page2_list, icon, fm_entries[i].name);
+
+        lv_obj_add_event_cb(row, fm_row_event, LV_EVENT_CLICKED,      NULL);
+        lv_obj_add_event_cb(row, fm_row_event, LV_EVENT_LONG_PRESSED, NULL);
+    }
+}
+
+void action_open_browser(lv_event_t * e){
+	fm_list_fill();
+	loadScreen(SCREEN_ID_BROWSER);
+}
+
+void action_close_pressed(lv_event_t * e){
+	loadScreen(SCREEN_ID_MAIN);
+}
+
+void action_back_pressed(lv_event_t * e){
+
+}
+
 
 void lcd_indev(lv_indev_t * indev, lv_indev_data_t * data){
 	static uint16_t touch_x, touch_y, touched;
