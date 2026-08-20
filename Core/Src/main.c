@@ -51,6 +51,10 @@ UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
 
+#define LVGL_BUFFER_PIXELS (LCD_W * (LCD_H / 4))
+static uint16_t buffer_arr[LVGL_BUFFER_PIXELS];
+static lv_display_t* disp;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -60,6 +64,8 @@ static void MX_GPIO_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_USART3_UART_Init(void);
 /* USER CODE BEGIN PFP */
+void lcd_flush(lv_display_t * disp, const lv_area_t * area, uint8_t * px_map);
+void lcd_indev(lv_indev_t * indev, lv_indev_data_t * data);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -74,9 +80,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-	uint16_t screen_x;
-	uint16_t screen_y;
-	char text[40];
+	lv_indev_t* touch_indev;
   /* USER CODE END 1 */
 
   /* MPU Configuration--------------------------------------------------------*/
@@ -106,6 +110,28 @@ int main(void)
   lcd_init();
   lcd_rect_fill(0, 0, LCD_W, LCD_H, BLACK);
   lv_init();
+  lv_tick_set_cb(HAL_GetTick);
+
+  disp = lv_display_create(LCD_W, LCD_H);
+  lv_display_set_buffers(disp, buffer_arr, NULL, sizeof(buffer_arr), LV_DISPLAY_RENDER_MODE_PARTIAL);
+  lv_display_set_flush_cb(disp, lcd_flush);
+
+
+  lv_obj_t *label = lv_label_create(lv_screen_active());
+  lv_label_set_text(label, "VERITAS II");
+
+  touch_indev = lv_indev_create();
+  lv_indev_set_type(touch_indev, LV_INDEV_TYPE_POINTER);
+  lv_indev_set_read_cb(touch_indev, lcd_indev);
+
+  lv_obj_t *btn = lv_button_create(lv_screen_active());
+  lv_obj_set_size(btn, 120, 60);
+  lv_obj_center(btn);
+
+
+
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -115,12 +141,10 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  if (touch_get(&screen_x, &screen_y)){
-		  sprintf(text,"X:%3u Y:%3u",screen_x,screen_y);
-		  lcd_text(10, 10, text, WHITE, BLACK, 2);
-		  lcd_pixel(screen_x, screen_y, GREEN);
-	  }
+	  lv_timer_handler();
+
 	  HAL_Delay(20);
+
   }
   /* USER CODE END 3 */
 }
@@ -384,6 +408,27 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void lcd_indev(lv_indev_t * indev, lv_indev_data_t * data){
+	static uint16_t touch_x, touch_y, touched;
+	touched = touch_get(&touch_x,&touch_y);
+	data->point.x = touch_x;
+	data->point.y = touch_y;
+	if(touched ==1){
+		data->state = LV_INDEV_STATE_PRESSED;
+	}
+	else{
+		data->state = LV_INDEV_STATE_RELEASED;
+	}
+}
+
+void lcd_flush(lv_display_t * disp, const lv_area_t * area, uint8_t * px_map){
+	int32_t area_height, area_width;
+	area_height = lv_area_get_height(area);
+	area_width = lv_area_get_width(area);
+	lcd_image(area->x1, area->y1, area_width, area_height, (const uint16_t*) px_map);
+	lv_display_flush_ready(disp);
+}
 
 /* USER CODE END 4 */
 
