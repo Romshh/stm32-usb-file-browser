@@ -4,5 +4,6 @@ Release/
 .metadata/
 .DS_Store
 lvgl/
+tinyusb/
 docs/
 *-ui-state
