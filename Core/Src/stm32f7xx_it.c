@@ -205,7 +205,7 @@ void SysTick_Handler(void)
 void OTG_FS_IRQHandler(void)
 {
   /* USER CODE BEGIN OTG_FS_IRQn 0 */
-	tusb_int_handler(0, 1);
+	tusb_int_handler(BOARD_TUH_RH_PORT, 1);
 
   /* USER CODE END OTG_FS_IRQn 0 */
   /* USER CODE BEGIN OTG_FS_IRQn 1 */

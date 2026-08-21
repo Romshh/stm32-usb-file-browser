@@ -28,6 +28,7 @@
 #include "lvgl/lvgl.h"
 #include "ui.h"
 #include "actions.h"
+#include "tusb.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -148,6 +149,15 @@ int main(void)
 
   ui_init();
 
+  HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin, GPIO_PIN_SET);
+  HAL_Delay(500);
+  tusb_rhport_init_t host_init;
+  host_init.role = TUSB_ROLE_HOST;
+  host_init.speed = TUSB_SPEED_FULL;
+  tusb_rhport_init(BOARD_TUH_RH_PORT, &host_init);
+
+
+
 
   /* USER CODE END 2 */
 
@@ -159,6 +169,7 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  lv_timer_handler();
+	  tuh_task();
 	  ui_tick();
 	  HAL_Delay(5);
 
@@ -504,6 +515,30 @@ void lcd_flush(lv_display_t * disp, const lv_area_t * area, uint8_t * px_map){
 	area_width = lv_area_get_width(area);
 	lcd_image(area->x1, area->y1, area_width, area_height, (const uint16_t*) px_map);
 	lv_display_flush_ready(disp);
+}
+
+void tuh_mount_cb(uint8_t daddr){
+	char charbuffer[80];
+	uint32_t length;
+	length = sprintf(charbuffer,"text daddr:%u \r\n",daddr);
+	HAL_UART_Transmit(&huart3, (const uint8_t*) charbuffer, length, 100);
+
+}
+void tuh_msc_mount_cb(uint8_t dev_addr){
+	char charbuffer[80];
+	uint32_t length;
+	uint32_t var1 = tuh_msc_get_block_count(dev_addr, 0);
+	uint32_t var2 = tuh_msc_get_block_size (dev_addr, 0);
+	length = sprintf(charbuffer,"text msc var1:%lu var2:%lu dev_addr:%u \r\n",var1,var2,dev_addr);
+	HAL_UART_Transmit(&huart3, (const uint8_t*) charbuffer, length, 100);
+
+
+}
+
+uint32_t tusb_time_millis_api(void){
+	uint32_t return_time;
+	return_time = HAL_GetTick();
+	return return_time;
 }
 
 /* USER CODE END 4 */
