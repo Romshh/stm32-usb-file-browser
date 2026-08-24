@@ -62,7 +62,7 @@ HCD_HandleTypeDef hhcd_USB_OTG_FS;
 #define LVGL_BUFFER_PIXELS (LCD_W * (LCD_H / 4))
 static uint16_t buffer_pix[LVGL_BUFFER_PIXELS]__attribute__((aligned(4)));
 static lv_display_t* disp;
-static uint32_t buffer_read[128]__attribute__((aligned(4)));
+static FATFS fs;
 
 typedef struct {
     const char *name;
@@ -553,8 +553,8 @@ void tuh_msc_mount_cb(uint8_t dev_addr){
 	uint32_t var2 = tuh_msc_get_block_size (dev_addr, 0);
 	length = sprintf(charbuffer,"text msc var1:%lu var2:%lu dev_addr:%u \r\n",var1,var2,dev_addr);
 	HAL_UART_Transmit(&huart3, (const uint8_t*) charbuffer, length, 100);
-	DRESULT dr = disk_read(dev_addr - 1, (BYTE*)buffer_read, 0, 1);
-	length = sprintf(charbuffer,"disk_read rc:%d LAST 2 BYTES: %02X %02X \r\n", dr, ((uint8_t*)buffer_read)[510], ((uint8_t*)buffer_read)[511]);
+	FRESULT fr = f_mount(&fs, "0:", 1);
+	length = sprintf(charbuffer,"f_mount rc:%d \r\n", fr);
 	HAL_UART_Transmit(&huart3, (const uint8_t*) charbuffer, length, 100);
 
 
