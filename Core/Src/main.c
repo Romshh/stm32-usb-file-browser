@@ -478,13 +478,13 @@ static void fm_menu_event(lv_event_t * e){
 }
 static void fm_list_fill(void)
 {
-    lv_obj_clean(objects.page2_list);
+    lv_obj_clean(objects.browser_list);
 
     for (uint32_t i = 0; i < FM_ENTRY_COUNT; i++)
     {
         const void *icon = fm_entries[i].is_dir ? LV_SYMBOL_DIRECTORY : LV_SYMBOL_FILE;
 
-        lv_obj_t *row = lv_list_add_button(objects.page2_list, icon, fm_entries[i].name);
+        lv_obj_t *row = lv_list_add_button(objects.browser_list, icon, fm_entries[i].name);
 
         lv_obj_add_event_cb(row, fm_row_event, LV_EVENT_CLICKED,      NULL);
         lv_obj_add_event_cb(row, fm_row_event, LV_EVENT_LONG_PRESSED, NULL);
