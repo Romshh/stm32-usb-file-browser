@@ -29,6 +29,8 @@
 #include "ui.h"
 #include "actions.h"
 #include "tusb.h"
+#include "ff.h"
+#include "diskio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -90,7 +92,6 @@ static void MX_SPI1_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_USB_OTG_FS_HCD_Init(void);
 /* USER CODE BEGIN PFP */
-bool msc_read10_state(uint8_t dev_addr, const tuh_msc_complete_data_t *cb_data);
 void lcd_flush(lv_display_t * disp, const lv_area_t * area, uint8_t * px_map);
 void lcd_indev(lv_indev_t * indev, lv_indev_data_t * data);
 /* USER CODE END PFP */
@@ -552,7 +553,9 @@ void tuh_msc_mount_cb(uint8_t dev_addr){
 	uint32_t var2 = tuh_msc_get_block_size (dev_addr, 0);
 	length = sprintf(charbuffer,"text msc var1:%lu var2:%lu dev_addr:%u \r\n",var1,var2,dev_addr);
 	HAL_UART_Transmit(&huart3, (const uint8_t*) charbuffer, length, 100);
-	tuh_msc_read10(dev_addr, 0, buffer_read, 0, 1, msc_read10_state, 0);
+	DRESULT dr = disk_read(dev_addr - 1, (BYTE*)buffer_read, 0, 1);
+	length = sprintf(charbuffer,"disk_read rc:%d LAST 2 BYTES: %02X %02X \r\n", dr, ((uint8_t*)buffer_read)[510], ((uint8_t*)buffer_read)[511]);
+	HAL_UART_Transmit(&huart3, (const uint8_t*) charbuffer, length, 100);
 
 
 }
@@ -562,15 +565,6 @@ uint32_t tusb_time_millis_api(void){
 	return_time = HAL_GetTick();
 	return return_time;
 }
-
-bool msc_read10_state(uint8_t dev_addr, const tuh_msc_complete_data_t *cb_data){
-	char charbuffer[80];
-	uint32_t length;
-	length = sprintf(charbuffer,"LAST 2 BYTES: %02X , %02X \r\n",((uint8_t *)buffer_read)[510], ((uint8_t *)buffer_read)[511]);
-	HAL_UART_Transmit(&huart3, (const uint8_t *)charbuffer, length, 100);
-	return true;
-}
-
 
 /* USER CODE END 4 */
 
