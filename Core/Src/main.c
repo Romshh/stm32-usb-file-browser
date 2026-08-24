@@ -58,8 +58,9 @@ HCD_HandleTypeDef hhcd_USB_OTG_FS;
 /* USER CODE BEGIN PV */
 
 #define LVGL_BUFFER_PIXELS (LCD_W * (LCD_H / 4))
-static uint16_t buffer_arr[LVGL_BUFFER_PIXELS]__attribute__((aligned(4)));
+static uint16_t buffer_pix[LVGL_BUFFER_PIXELS]__attribute__((aligned(4)));
 static lv_display_t* disp;
+static uint32_t buffer_read[128]__attribute__((aligned(4)));
 
 typedef struct {
     const char *name;
@@ -89,6 +90,7 @@ static void MX_SPI1_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_USB_OTG_FS_HCD_Init(void);
 /* USER CODE BEGIN PFP */
+bool msc_read10_state(uint8_t dev_addr, const tuh_msc_complete_data_t *cb_data);
 void lcd_flush(lv_display_t * disp, const lv_area_t * area, uint8_t * px_map);
 void lcd_indev(lv_indev_t * indev, lv_indev_data_t * data);
 /* USER CODE END PFP */
@@ -139,7 +141,7 @@ int main(void)
   lv_tick_set_cb(HAL_GetTick);
 
   disp = lv_display_create(LCD_W, LCD_H);
-  lv_display_set_buffers(disp, buffer_arr, NULL, sizeof(buffer_arr), LV_DISPLAY_RENDER_MODE_PARTIAL);
+  lv_display_set_buffers(disp, buffer_pix, NULL, sizeof(buffer_pix), LV_DISPLAY_RENDER_MODE_PARTIAL);
   lv_display_set_flush_cb(disp, lcd_flush);
 
 
@@ -465,8 +467,14 @@ static void fm_row_event(lv_event_t *e){
 
 	}
 }
-
-
+static void fm_menu_event(lv_event_t * e){
+	lv_obj_t* button = (lv_obj_t*) lv_event_get_target(e);
+	lv_event_code_t code = lv_event_get_code(e);
+	if(code == LV_EVENT_CLICKED){
+		lv_obj_t* icon = lv_obj_get_child(button, 0);
+		lv_obj_set_style_text_color(icon, lv_color_hex(0xEB2525), LV_PART_MAIN);
+	}
+}
 static void fm_list_fill(void)
 {
     lv_obj_clean(objects.page2_list);
@@ -479,6 +487,19 @@ static void fm_list_fill(void)
 
         lv_obj_add_event_cb(row, fm_row_event, LV_EVENT_CLICKED,      NULL);
         lv_obj_add_event_cb(row, fm_row_event, LV_EVENT_LONG_PRESSED, NULL);
+
+        lv_obj_t * button1 = lv_button_create(row);
+        lv_obj_set_style_bg_opa(button1, LV_OPA_TRANSP, LV_PART_MAIN);
+        lv_obj_set_style_shadow_width(button1, 0, LV_PART_MAIN);
+        lv_obj_add_flag(button1, LV_OBJ_FLAG_IGNORE_LAYOUT);
+        lv_obj_align(button1, LV_ALIGN_RIGHT_MID, -10, 0);
+        lv_obj_set_size(button1, 30,30);
+        lv_obj_add_event_cb(button1, fm_menu_event, LV_EVENT_CLICKED, NULL);
+
+        lv_obj_t * label1 = lv_label_create(button1);
+        lv_label_set_text(label1, LV_SYMBOL_BARS);
+        lv_obj_set_style_text_color(label1, lv_color_hex(0x000000), LV_PART_MAIN);
+        lv_obj_center(label1);
     }
 }
 
@@ -531,6 +552,7 @@ void tuh_msc_mount_cb(uint8_t dev_addr){
 	uint32_t var2 = tuh_msc_get_block_size (dev_addr, 0);
 	length = sprintf(charbuffer,"text msc var1:%lu var2:%lu dev_addr:%u \r\n",var1,var2,dev_addr);
 	HAL_UART_Transmit(&huart3, (const uint8_t*) charbuffer, length, 100);
+	tuh_msc_read10(dev_addr, 0, buffer_read, 0, 1, msc_read10_state, 0);
 
 
 }
@@ -540,6 +562,15 @@ uint32_t tusb_time_millis_api(void){
 	return_time = HAL_GetTick();
 	return return_time;
 }
+
+bool msc_read10_state(uint8_t dev_addr, const tuh_msc_complete_data_t *cb_data){
+	char charbuffer[80];
+	uint32_t length;
+	length = sprintf(charbuffer,"LAST 2 BYTES: %02X , %02X \r\n",((uint8_t *)buffer_read)[510], ((uint8_t *)buffer_read)[511]);
+	HAL_UART_Transmit(&huart3, (const uint8_t *)charbuffer, length, 100);
+	return true;
+}
+
 
 /* USER CODE END 4 */
 

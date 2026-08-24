@@ -115,15 +115,6 @@
   },
   "actions": [
     {
-      "objID": "c885bf50-17ae-41e6-d237-8e8bf3a57ba7",
-      "components": [],
-      "connectionLines": [],
-      "localVariables": [],
-      "componentGroups": [],
-      "userProperties": [],
-      "name": "next_page"
-    },
-    {
       "objID": "9c869f8c-fcf0-4d7f-9110-3444f84cbf14",
       "components": [],
       "connectionLines": [],
