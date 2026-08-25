@@ -140,6 +140,15 @@
       "componentGroups": [],
       "userProperties": [],
       "name": "close_pressed"
+    },
+    {
+      "objID": "660ad5f6-547d-4a5b-928a-b7c7cf4a9c5e",
+      "components": [],
+      "connectionLines": [],
+      "localVariables": [],
+      "componentGroups": [],
+      "userProperties": [],
+      "name": "viewer_back_pressed"
     }
   ],
   "userPages": [
@@ -1819,6 +1828,87 @@
               },
               "group": "",
               "groupIndex": 0
+            },
+            {
+              "objID": "dc877ca3-41f7-41af-a857-b82db0166212",
+              "type": "LVGLContainerWidget",
+              "left": 0,
+              "top": 0,
+              "width": 320,
+              "height": 240,
+              "customInputs": [],
+              "customOutputs": [],
+              "style": {
+                "objID": "0e0c889a-3a72-4d81-ec27-74e8c328c54e",
+                "useStyle": "default",
+                "conditionalStyles": [],
+                "childStyles": []
+              },
+              "timeline": [],
+              "eventHandlers": [],
+              "identifier": "waiting",
+              "leftUnit": "px",
+              "topUnit": "px",
+              "widthUnit": "px",
+              "heightUnit": "px",
+              "children": [
+                {
+                  "objID": "e53cf847-ee1c-4667-daac-d3d7dd48fac3",
+                  "type": "LVGLSpinnerWidget",
+                  "left": 120,
+                  "top": 80,
+                  "width": 80,
+                  "height": 80,
+                  "customInputs": [],
+                  "customOutputs": [],
+                  "style": {
+                    "objID": "46c52935-2c90-4192-cd0a-1a2b1ec31e70",
+                    "useStyle": "default",
+                    "conditionalStyles": [],
+                    "childStyles": []
+                  },
+                  "timeline": [],
+                  "eventHandlers": [],
+                  "identifier": "waiting_spinner",
+                  "leftUnit": "px",
+                  "topUnit": "px",
+                  "widthUnit": "px",
+                  "heightUnit": "px",
+                  "children": [],
+                  "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+                  "hiddenFlagType": "literal",
+                  "clickableFlagType": "literal",
+                  "flagScrollbarMode": "",
+                  "flagScrollDirection": "",
+                  "scrollSnapX": "",
+                  "scrollSnapY": "",
+                  "checkedStateType": "literal",
+                  "disabledStateType": "literal",
+                  "states": "",
+                  "localStyles": {
+                    "objID": "b261cd55-077b-4e5a-a8f5-be33b75b0829"
+                  },
+                  "group": "",
+                  "groupIndex": 0
+                }
+              ],
+              "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+              "hiddenFlag": true,
+              "hiddenFlagType": "literal",
+              "clickableFlag": true,
+              "clickableFlagType": "literal",
+              "flagScrollbarMode": "",
+              "flagScrollDirection": "",
+              "scrollSnapX": "",
+              "scrollSnapY": "",
+              "checkedStateType": "literal",
+              "disabledStateType": "literal",
+              "states": "",
+              "localStyles": {
+                "objID": "481ebfad-e2b3-45c7-aade-b09f8a0db22e"
+              },
+              "group": "",
+              "groupIndex": 0
             }
           ],
           "widgetFlags": "CLICKABLE|PRESS_LOCK|CLICK_FOCUSABLE|GESTURE_BUBBLE|SNAPPABLE|SCROLLABLE|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER",
@@ -2156,10 +2246,10 @@
                   "timeline": [],
                   "eventHandlers": [
                     {
-                      "objID": "65c50016-4e96-459f-9ecc-5f8e922e9823",
+                      "objID": "6c639941-3468-439d-87cd-278035cab626",
                       "eventName": "CLICKED",
                       "handlerType": "action",
-                      "action": "back_pressed",
+                      "action": "viewer_back_pressed",
                       "userData": 0
                     }
                   ],

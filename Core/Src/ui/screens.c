@@ -380,6 +380,31 @@ void create_screen_browser() {
                 }
             }
         }
+        {
+            // waiting
+            lv_obj_t *obj = lv_obj_create(parent_obj);
+            objects.waiting = obj;
+            lv_obj_set_pos(obj, 0, 0);
+            lv_obj_set_size(obj, 320, 240);
+            lv_obj_set_style_pad_left(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_top(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_right(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_bottom(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_opa(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_radius(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+            {
+                lv_obj_t *parent_obj = obj;
+                {
+                    // waiting_spinner
+                    lv_obj_t *obj = lv_spinner_create(parent_obj);
+                    objects.waiting_spinner = obj;
+                    lv_obj_set_pos(obj, 120, 80);
+                    lv_obj_set_size(obj, 80, 80);
+                }
+            }
+        }
     }
     
     tick_screen_browser();
@@ -463,7 +488,7 @@ void create_screen_viewer() {
                     objects.viewer_back_button = obj;
                     lv_obj_set_pos(obj, 8, 2);
                     lv_obj_set_size(obj, 40, 27);
-                    lv_obj_add_event_cb(obj, action_back_pressed, LV_EVENT_CLICKED, (void *)0);
+                    lv_obj_add_event_cb(obj, action_viewer_back_pressed, LV_EVENT_CLICKED, (void *)0);
                     lv_obj_set_style_bg_color(obj, lv_color_hex(0xffc324), LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_shadow_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_shadow_ofs_y(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);

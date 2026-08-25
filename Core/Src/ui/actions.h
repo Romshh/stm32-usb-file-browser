@@ -10,6 +10,7 @@ extern "C" {
 extern void action_open_browser(lv_event_t * e);
 extern void action_back_pressed(lv_event_t * e);
 extern void action_close_pressed(lv_event_t * e);
+extern void action_viewer_back_pressed(lv_event_t * e);
 
 #ifdef __cplusplus
 }

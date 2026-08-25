@@ -65,7 +65,16 @@ static uint16_t buffer_pix[LVGL_BUFFER_PIXELS]__attribute__((aligned(4)));
 static lv_display_t* disp;
 static FATFS fs;
 
+#define FM_VIEW_BYTES 4096
+
 static char fm_pathbuffer[512] = "0:";
+static char fm_fullpath[768];
+static char fm_filebuf[FM_VIEW_BYTES + 1];
+static FIL fm_file;
+static lv_obj_t* fm_path_label;
+static lv_obj_t* fm_wait_label;
+static char fm_volname[24] = "USB";
+static bool fm_ready = false;
 
 /* USER CODE END PV */
 
@@ -80,6 +89,7 @@ static void MX_USB_OTG_FS_HCD_Init(void);
 void lcd_flush(lv_display_t * disp, const lv_area_t * area, uint8_t * px_map);
 void lcd_indev(lv_indev_t * indev, lv_indev_data_t * data);
 static void fm_list_fill(void);
+static void fm_ui_init(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -137,6 +147,7 @@ int main(void)
   lv_indev_set_read_cb(touch_indev, lcd_indev);
 
   ui_init();
+  fm_ui_init();
 
   HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin, GPIO_PIN_SET);
   HAL_Delay(500);
@@ -442,13 +453,72 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+static bool fm_build_full_path(const char* name){
+	int written = snprintf(fm_fullpath, sizeof(fm_fullpath), "%s/%s", fm_pathbuffer, name);
+
+	return (written > 0 && (size_t) written < sizeof(fm_fullpath));
+}
+
+static void fm_open_viewer(const char* name){
+	UINT readcount;
+
+	if(fm_build_full_path(name) == false){
+		return;
+	}
+
+	if(f_open(&fm_file, fm_fullpath, FA_READ) != FR_OK){
+		return;
+	}
+
+	if(f_read(&fm_file, fm_filebuf, FM_VIEW_BYTES, &readcount) != FR_OK){
+		f_close(&fm_file);
+		return;
+	}
+
+	if(f_size(&fm_file) > FM_VIEW_BYTES){
+		lv_obj_remove_flag(objects.viewer_note, LV_OBJ_FLAG_HIDDEN);
+	}
+	else{
+		lv_obj_add_flag(objects.viewer_note, LV_OBJ_FLAG_HIDDEN);
+	}
+
+	f_close(&fm_file);
+
+	fm_filebuf[readcount] = '\0';
+
+	for(UINT i = 0; i < readcount; i++){
+		unsigned char c = (unsigned char) fm_filebuf[i];
+
+		if(c != '\n' && c != '\r' && c != '\t' && (c < 0x20 || c > 0x7E)){
+			fm_filebuf[i] = '.';
+		}
+	}
+
+	lv_label_set_text(objects.viewer_title, name);
+	lv_textarea_set_text(objects.viewer_text, fm_filebuf);
+	loadScreen(SCREEN_ID_VIEWER);
+}
+
+static void fm_ui_init(void){
+	fm_path_label = lv_label_create(objects.browser_top_bar);
+	lv_label_set_long_mode(fm_path_label, LV_LABEL_LONG_MODE_SCROLL);
+	lv_obj_set_width(fm_path_label, 170);
+	lv_obj_set_style_text_align(fm_path_label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
+	lv_obj_align(fm_path_label, LV_ALIGN_CENTER, 0, 0);
+
+	fm_wait_label = lv_label_create(objects.waiting);
+	lv_label_set_text(fm_wait_label, "Waiting for USB");
+	lv_obj_align(fm_wait_label, LV_ALIGN_CENTER, 0, 70);
+}
+
 static void fm_row_event(lv_event_t *e){
 
 	lv_obj_t* row = (lv_obj_t*) lv_event_get_target(e);
 	lv_event_code_t code = lv_event_get_code(e);
 	if(code == LV_EVENT_CLICKED){
+		const char* name = lv_list_get_button_text(objects.browser_list, row);
+
 		if(lv_obj_has_flag(row, LV_OBJ_FLAG_USER_1)){
-			const char* name = lv_list_get_button_text(objects.browser_list, row);
 			size_t len = strlen(fm_pathbuffer);
 			size_t room = sizeof(fm_pathbuffer) - len;
 			int written = snprintf(fm_pathbuffer + len, room, "/%s", name);
@@ -462,7 +532,7 @@ static void fm_row_event(lv_event_t *e){
 			return;
 		}
 
-		lv_obj_set_style_bg_color(row, lv_color_hex(0x2563EB), LV_PART_MAIN);
+		fm_open_viewer(name);
 	}
 }
 static void fm_menu_event(lv_event_t * e){
@@ -476,6 +546,23 @@ static void fm_menu_event(lv_event_t * e){
 static void fm_list_fill(void)
 {
     lv_obj_clean(objects.browser_list);
+
+    if(strcmp(fm_pathbuffer, "0:") == 0){
+    	lv_label_set_text(fm_path_label, fm_volname);
+    	lv_obj_add_state(objects.browser_back_button, LV_STATE_DISABLED);
+    }
+    else{
+    	lv_label_set_text(fm_path_label, fm_pathbuffer);
+    	lv_obj_remove_state(objects.browser_back_button, LV_STATE_DISABLED);
+    }
+
+    if(fm_ready == false){
+    	lv_obj_remove_flag(objects.waiting, LV_OBJ_FLAG_HIDDEN);
+    	return;
+    }
+
+    lv_obj_add_flag(objects.waiting, LV_OBJ_FLAG_HIDDEN);
+
     static DIR dirvar;
     static FILINFO filinfovar;
     static FRESULT fresultvar;
@@ -529,7 +616,12 @@ void action_open_browser(lv_event_t * e){
 }
 
 void action_close_pressed(lv_event_t * e){
+	strcpy(fm_pathbuffer, "0:");
 	loadScreen(SCREEN_ID_MAIN);
+}
+
+void action_viewer_back_pressed(lv_event_t * e){
+	loadScreen(SCREEN_ID_BROWSER);
 }
 
 void action_back_pressed(lv_event_t * e){
@@ -583,6 +675,15 @@ void tuh_msc_mount_cb(uint8_t dev_addr){
 	FRESULT fr = f_mount(&fs, "0:", 1);
 	length = sprintf(charbuffer,"f_mount rc:%d \r\n", fr);
 	HAL_UART_Transmit(&huart3, (const uint8_t*) charbuffer, length, 100);
+
+	if(fr == FR_OK){
+		if(f_getlabel("0:", fm_volname, NULL) != FR_OK || fm_volname[0] == '\0'){
+			strcpy(fm_volname, "USB");
+		}
+
+		fm_ready = true;
+		fm_list_fill();
+	}
 
 
 }

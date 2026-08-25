@@ -42,6 +42,8 @@ typedef struct _objects_t {
     lv_obj_t *rename_ok_button;
     lv_obj_t *rename_input;
     lv_obj_t *rename_keyboard;
+    lv_obj_t *waiting;
+    lv_obj_t *waiting_spinner;
     lv_obj_t *viewer_note;
     lv_obj_t *viewer_text;
     lv_obj_t *viewer_top_bar;
