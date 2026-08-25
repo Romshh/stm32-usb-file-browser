@@ -24,6 +24,7 @@
 #include "lcd.h"
 #include "touch.h"
 #include <stdio.h>
+#include <string.h>
 
 #include "lvgl/lvgl.h"
 #include "ui.h"
@@ -64,6 +65,7 @@ static uint16_t buffer_pix[LVGL_BUFFER_PIXELS]__attribute__((aligned(4)));
 static lv_display_t* disp;
 static FATFS fs;
 
+static char fm_pathbuffer[256] = "0:";
 
 /* USER CODE END PV */
 
@@ -77,6 +79,7 @@ static void MX_USB_OTG_FS_HCD_Init(void);
 /* USER CODE BEGIN PFP */
 void lcd_flush(lv_display_t * disp, const lv_area_t * area, uint8_t * px_map);
 void lcd_indev(lv_indev_t * indev, lv_indev_data_t * data);
+static void fm_list_fill(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -444,11 +447,15 @@ static void fm_row_event(lv_event_t *e){
 	lv_obj_t* row = (lv_obj_t*) lv_event_get_target(e);
 	lv_event_code_t code = lv_event_get_code(e);
 	if(code == LV_EVENT_CLICKED){
-		lv_obj_set_style_bg_color(row, lv_color_hex(0x2563EB), LV_PART_MAIN);
-	}
-	else if(code == LV_EVENT_LONG_PRESSED){
-		lv_obj_set_style_bg_color(row, lv_color_hex(0xEB259F), LV_PART_MAIN);
+		if(lv_obj_has_flag(row, LV_OBJ_FLAG_USER_1)){
+			const char* name = lv_list_get_button_text(objects.browser_list, row);
+			size_t len = strlen(fm_pathbuffer);
+			snprintf(fm_pathbuffer + len, sizeof(fm_pathbuffer) - len, "/%s", name);
+			fm_list_fill();
+			return;
+		}
 
+		lv_obj_set_style_bg_color(row, lv_color_hex(0x2563EB), LV_PART_MAIN);
 	}
 }
 static void fm_menu_event(lv_event_t * e){
@@ -466,7 +473,7 @@ static void fm_list_fill(void)
     static FILINFO filinfovar;
     static FRESULT fresultvar;
 
-    fresultvar = f_opendir(&dirvar,"0:/");
+    fresultvar = f_opendir(&dirvar,fm_pathbuffer);
 
     if(fresultvar != FR_OK){
     	return;
@@ -485,14 +492,17 @@ static void fm_list_fill(void)
 
     	lv_obj_t *row = lv_list_add_button(objects.browser_list, icon, filinfovar.fname);
 
+    	lv_obj_set_flex_align(row, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+
+    	if(filinfovar.fattrib & AM_DIR){
+    		lv_obj_add_flag(row, LV_OBJ_FLAG_USER_1);
+    	}
+
     	lv_obj_add_event_cb(row, fm_row_event, LV_EVENT_CLICKED,      NULL);
-    	lv_obj_add_event_cb(row, fm_row_event, LV_EVENT_LONG_PRESSED, NULL);
     	lv_obj_t * button1 = lv_button_create(row);
 
     	lv_obj_set_style_bg_opa(button1, LV_OPA_TRANSP, LV_PART_MAIN);
     	lv_obj_set_style_shadow_width(button1, 0, LV_PART_MAIN);
-    	lv_obj_add_flag(button1, LV_OBJ_FLAG_IGNORE_LAYOUT);
-    	lv_obj_align(button1, LV_ALIGN_RIGHT_MID, -10, 0);
     	lv_obj_set_size(button1, 30,30);
     	lv_obj_add_event_cb(button1, fm_menu_event, LV_EVENT_CLICKED, NULL);
 
@@ -516,6 +526,14 @@ void action_close_pressed(lv_event_t * e){
 }
 
 void action_back_pressed(lv_event_t * e){
+	char* lastslash = strrchr(fm_pathbuffer, '/');
+
+	if(lastslash == NULL){
+		return;
+	}
+
+	*lastslash = '\0';
+	fm_list_fill();
 
 }
 
