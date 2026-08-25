@@ -64,23 +64,6 @@ static uint16_t buffer_pix[LVGL_BUFFER_PIXELS]__attribute__((aligned(4)));
 static lv_display_t* disp;
 static FATFS fs;
 
-typedef struct {
-    const char *name;
-    bool        is_dir;
-} fm_entry_t;
-
-static const fm_entry_t fm_entries[] = {
-    { "documents",  true  },
-    { "pictures",   true  },
-    { "music",      true  },
-    { "notes.txt",  false },
-    { "report.md",  false },
-    { "logo.png",   false },
-    { "record.wav", false },
-};
-
-#define FM_ENTRY_COUNT (sizeof(fm_entries) / sizeof(fm_entries[0]))
-
 
 /* USER CODE END PV */
 
@@ -479,29 +462,48 @@ static void fm_menu_event(lv_event_t * e){
 static void fm_list_fill(void)
 {
     lv_obj_clean(objects.browser_list);
+    static DIR dirvar;
+    static FILINFO filinfovar;
+    static FRESULT fresultvar;
 
-    for (uint32_t i = 0; i < FM_ENTRY_COUNT; i++)
-    {
-        const void *icon = fm_entries[i].is_dir ? LV_SYMBOL_DIRECTORY : LV_SYMBOL_FILE;
+    fresultvar = f_opendir(&dirvar,"0:/");
 
-        lv_obj_t *row = lv_list_add_button(objects.browser_list, icon, fm_entries[i].name);
-
-        lv_obj_add_event_cb(row, fm_row_event, LV_EVENT_CLICKED,      NULL);
-        lv_obj_add_event_cb(row, fm_row_event, LV_EVENT_LONG_PRESSED, NULL);
-
-        lv_obj_t * button1 = lv_button_create(row);
-        lv_obj_set_style_bg_opa(button1, LV_OPA_TRANSP, LV_PART_MAIN);
-        lv_obj_set_style_shadow_width(button1, 0, LV_PART_MAIN);
-        lv_obj_add_flag(button1, LV_OBJ_FLAG_IGNORE_LAYOUT);
-        lv_obj_align(button1, LV_ALIGN_RIGHT_MID, -10, 0);
-        lv_obj_set_size(button1, 30,30);
-        lv_obj_add_event_cb(button1, fm_menu_event, LV_EVENT_CLICKED, NULL);
-
-        lv_obj_t * label1 = lv_label_create(button1);
-        lv_label_set_text(label1, LV_SYMBOL_BARS);
-        lv_obj_set_style_text_color(label1, lv_color_hex(0x000000), LV_PART_MAIN);
-        lv_obj_center(label1);
+    if(fresultvar != FR_OK){
+    	return;
     }
+
+    while(f_readdir(&dirvar, &filinfovar) == FR_OK && filinfovar.fname[0] != 0){
+    	if(filinfovar.fattrib & (AM_HID | AM_SYS)){
+    		continue;
+    	}
+
+    	if(filinfovar.fname[0] == '.'){
+    		continue;
+    	}
+
+    	const void *icon = (filinfovar.fattrib & AM_DIR) ? LV_SYMBOL_DIRECTORY : LV_SYMBOL_FILE;
+
+    	lv_obj_t *row = lv_list_add_button(objects.browser_list, icon, filinfovar.fname);
+
+    	lv_obj_add_event_cb(row, fm_row_event, LV_EVENT_CLICKED,      NULL);
+    	lv_obj_add_event_cb(row, fm_row_event, LV_EVENT_LONG_PRESSED, NULL);
+    	lv_obj_t * button1 = lv_button_create(row);
+
+    	lv_obj_set_style_bg_opa(button1, LV_OPA_TRANSP, LV_PART_MAIN);
+    	lv_obj_set_style_shadow_width(button1, 0, LV_PART_MAIN);
+    	lv_obj_add_flag(button1, LV_OBJ_FLAG_IGNORE_LAYOUT);
+    	lv_obj_align(button1, LV_ALIGN_RIGHT_MID, -10, 0);
+    	lv_obj_set_size(button1, 30,30);
+    	lv_obj_add_event_cb(button1, fm_menu_event, LV_EVENT_CLICKED, NULL);
+
+    	lv_obj_t * label1 = lv_label_create(button1);
+    	lv_label_set_text(label1, LV_SYMBOL_BARS);
+    	lv_obj_set_style_text_color(label1, lv_color_hex(0x000000), LV_PART_MAIN);
+    	lv_obj_center(label1);
+    }
+
+    f_closedir(&dirvar);
+
 }
 
 void action_open_browser(lv_event_t * e){
