@@ -65,7 +65,7 @@ static uint16_t buffer_pix[LVGL_BUFFER_PIXELS]__attribute__((aligned(4)));
 static lv_display_t* disp;
 static FATFS fs;
 
-static char fm_pathbuffer[256] = "0:";
+static char fm_pathbuffer[512] = "0:";
 
 /* USER CODE END PV */
 
@@ -450,7 +450,14 @@ static void fm_row_event(lv_event_t *e){
 		if(lv_obj_has_flag(row, LV_OBJ_FLAG_USER_1)){
 			const char* name = lv_list_get_button_text(objects.browser_list, row);
 			size_t len = strlen(fm_pathbuffer);
-			snprintf(fm_pathbuffer + len, sizeof(fm_pathbuffer) - len, "/%s", name);
+			size_t room = sizeof(fm_pathbuffer) - len;
+			int written = snprintf(fm_pathbuffer + len, room, "/%s", name);
+
+			if(written < 0 || (size_t) written >= room){
+				fm_pathbuffer[len] = '\0';
+				return;
+			}
+
 			fm_list_fill();
 			return;
 		}
