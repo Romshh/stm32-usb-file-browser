@@ -63,7 +63,7 @@ void create_screen_main() {
             lv_qrcode_set_size(obj, 79);
             lv_qrcode_set_dark_color(obj, lv_color_hex(0x000000));
             lv_qrcode_set_light_color(obj, lv_color_hex(0xffffff));
-            lv_qrcode_update(obj, "https://github.com/Romshh/stm32-usb-file-viewer", 47);
+            lv_qrcode_update(obj, "https://github.com/Romshh/stm32-usb-file-browser", 48);
             lv_obj_add_flag(obj, LV_OBJ_FLAG_CLICKABLE);
         }
         {
