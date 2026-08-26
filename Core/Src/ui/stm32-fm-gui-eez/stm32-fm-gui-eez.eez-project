@@ -361,16 +361,16 @@
               },
               "group": "",
               "groupIndex": 0,
-              "text": "https://github.com/Romshh/",
+              "text": "https://github.com/Romshh/stm32-usb-file-viewer",
               "darkColor": "#000000",
               "lightColor": "#FFFFFF"
             },
             {
               "objID": "77a131f9-34b5-4c82-97d3-e78cf6ec3b1d",
               "type": "LVGLLabelWidget",
-              "left": 74,
+              "left": 76,
               "top": 120,
-              "width": 172,
+              "width": 168,
               "height": 16,
               "customInputs": [],
               "customOutputs": [],
@@ -402,7 +402,7 @@
               },
               "group": "",
               "groupIndex": 0,
-              "text": "stm32-file-manager-gui",
+              "text": "stm32-usb-file-browser",
               "textType": "literal",
               "longMode": "WRAP",
               "recolor": false,
@@ -2051,7 +2051,7 @@
               "oneLineMode": false,
               "passwordMode": false,
               "acceptedCharacters": "",
-              "maxTextLength": 128
+              "maxTextLength": 0
             },
             {
               "objID": "b96cca37-89e0-42c4-ee37-accd18401fd2",

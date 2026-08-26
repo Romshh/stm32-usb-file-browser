@@ -506,6 +506,8 @@ static void fm_ui_init(void){
 	lv_obj_set_style_text_align(fm_path_label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
 	lv_obj_align(fm_path_label, LV_ALIGN_CENTER, 0, 0);
 
+	lv_textarea_set_max_length(objects.viewer_text, 0);
+
 	fm_wait_label = lv_label_create(objects.waiting);
 	lv_label_set_text(fm_wait_label, "Waiting for USB");
 	lv_obj_align(fm_wait_label, LV_ALIGN_CENTER, 0, 70);
@@ -533,14 +535,6 @@ static void fm_row_event(lv_event_t *e){
 		}
 
 		fm_open_viewer(name);
-	}
-}
-static void fm_menu_event(lv_event_t * e){
-	lv_obj_t* button = (lv_obj_t*) lv_event_get_target(e);
-	lv_event_code_t code = lv_event_get_code(e);
-	if(code == LV_EVENT_CLICKED){
-		lv_obj_t* icon = lv_obj_get_child(button, 0);
-		lv_obj_set_style_text_color(icon, lv_color_hex(0xEB2525), LV_PART_MAIN);
 	}
 }
 static void fm_list_fill(void)
@@ -592,18 +586,7 @@ static void fm_list_fill(void)
     		lv_obj_add_flag(row, LV_OBJ_FLAG_USER_1);
     	}
 
-    	lv_obj_add_event_cb(row, fm_row_event, LV_EVENT_CLICKED,      NULL);
-    	lv_obj_t * button1 = lv_button_create(row);
-
-    	lv_obj_set_style_bg_opa(button1, LV_OPA_TRANSP, LV_PART_MAIN);
-    	lv_obj_set_style_shadow_width(button1, 0, LV_PART_MAIN);
-    	lv_obj_set_size(button1, 30,30);
-    	lv_obj_add_event_cb(button1, fm_menu_event, LV_EVENT_CLICKED, NULL);
-
-    	lv_obj_t * label1 = lv_label_create(button1);
-    	lv_label_set_text(label1, LV_SYMBOL_BARS);
-    	lv_obj_set_style_text_color(label1, lv_color_hex(0x000000), LV_PART_MAIN);
-    	lv_obj_center(label1);
+    	lv_obj_add_event_cb(row, fm_row_event, LV_EVENT_CLICKED, NULL);
     }
 
     f_closedir(&dirvar);
@@ -658,34 +641,30 @@ void lcd_flush(lv_display_t * disp, const lv_area_t * area, uint8_t * px_map){
 	lv_display_flush_ready(disp);
 }
 
-void tuh_mount_cb(uint8_t daddr){
-	char charbuffer[80];
-	uint32_t length;
-	length = sprintf(charbuffer,"text daddr:%u \r\n",daddr);
-	HAL_UART_Transmit(&huart3, (const uint8_t*) charbuffer, length, 100);
-
-}
 void tuh_msc_mount_cb(uint8_t dev_addr){
-	char charbuffer[80];
-	uint32_t length;
-	uint32_t var1 = tuh_msc_get_block_count(dev_addr, 0);
-	uint32_t var2 = tuh_msc_get_block_size (dev_addr, 0);
-	length = sprintf(charbuffer,"text msc var1:%lu var2:%lu dev_addr:%u \r\n",var1,var2,dev_addr);
-	HAL_UART_Transmit(&huart3, (const uint8_t*) charbuffer, length, 100);
-	FRESULT fr = f_mount(&fs, "0:", 1);
-	length = sprintf(charbuffer,"f_mount rc:%d \r\n", fr);
-	HAL_UART_Transmit(&huart3, (const uint8_t*) charbuffer, length, 100);
-
-	if(fr == FR_OK){
-		if(f_getlabel("0:", fm_volname, NULL) != FR_OK || fm_volname[0] == '\0'){
-			strcpy(fm_volname, "USB");
-		}
-
-		fm_ready = true;
-		fm_list_fill();
+	if(f_mount(&fs, "0:", 1) != FR_OK){
+		return;
 	}
 
+	if(f_getlabel("0:", fm_volname, NULL) != FR_OK || fm_volname[0] == '\0'){
+		strcpy(fm_volname, "USB");
+	}
 
+	fm_ready = true;
+	fm_list_fill();
+}
+
+void tuh_msc_umount_cb(uint8_t dev_addr){
+	fm_ready = false;
+	f_mount(NULL, "0:", 0);
+	strcpy(fm_pathbuffer, "0:");
+	strcpy(fm_volname, "USB");
+
+	if(lv_screen_active() == objects.viewer){
+		loadScreen(SCREEN_ID_BROWSER);
+	}
+
+	fm_list_fill();
 }
 
 uint32_t tusb_time_millis_api(void){

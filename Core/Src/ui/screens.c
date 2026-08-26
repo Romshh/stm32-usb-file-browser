@@ -63,14 +63,14 @@ void create_screen_main() {
             lv_qrcode_set_size(obj, 79);
             lv_qrcode_set_dark_color(obj, lv_color_hex(0x000000));
             lv_qrcode_set_light_color(obj, lv_color_hex(0xffffff));
-            lv_qrcode_update(obj, "https://github.com/Romshh/", 26);
+            lv_qrcode_update(obj, "https://github.com/Romshh/stm32-usb-file-viewer", 47);
             lv_obj_add_flag(obj, LV_OBJ_FLAG_CLICKABLE);
         }
         {
             lv_obj_t *obj = lv_label_create(parent_obj);
-            lv_obj_set_pos(obj, 74, 120);
+            lv_obj_set_pos(obj, 76, 120);
             lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-            lv_label_set_text_static(obj, "stm32-file-manager-gui");
+            lv_label_set_text_static(obj, "stm32-usb-file-browser");
         }
         {
             lv_obj_t *obj = lv_image_create(parent_obj);
@@ -434,7 +434,7 @@ void create_screen_viewer() {
             objects.viewer_text = obj;
             lv_obj_set_pos(obj, 8, 30);
             lv_obj_set_size(obj, 304, 190);
-            lv_textarea_set_max_length(obj, 128);
+            lv_textarea_set_max_length(obj, 0);
             lv_textarea_set_one_line(obj, false);
             lv_textarea_set_password_mode(obj, false);
         }
